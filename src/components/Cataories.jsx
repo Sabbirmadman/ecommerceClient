@@ -9,6 +9,7 @@ const Container = styled.div`
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     padding: 20px;
     justify-content: space-between;
+    align-items: center;
 `;
 
 const Cataories = () => {

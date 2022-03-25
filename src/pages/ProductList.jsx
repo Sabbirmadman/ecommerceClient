@@ -6,6 +6,8 @@ import Navbar from "../components/Navbar";
 import NewsLetter from "../components/NewsLetter";
 import Products from "../components/Products";
 
+import { useLocation } from "react-router-dom";
+
 import { mobile } from "../responsive";
 
 const Container = styled.div``;
@@ -39,43 +41,56 @@ const Select = styled.select`
 const Option = styled.option``;
 
 const ProductList = () => {
+    const locations = useLocation();
+    const cat = locations.pathname.split("/")[2];
+
+    const [filters, setFilters] = React.useState({});
+    const [sort, setSort] = React.useState("newest");
+
+    const handleFilters = (e) => {
+        const value = e.target.value;
+        setFilters({
+            ...filters,
+            [e.target.name]: value,
+        });
+    };
+
     return (
         <Container>
             <Navbar />
             <Announcement />
-            <Title>Foods</Title>
+            <Title>{cat}</Title>
             <FilterContainer>
                 <Filter>
                     <FilterText>Filter</FilterText>
-                    <Select>
-                        <Option disabled selected>
-                            Fruits
-                        </Option>
-                        <Option>Banana shake</Option>
-                        <Option>Apple Juice</Option>
-                        <Option>Orange Juice</Option>
+                    <Select name="color" onChange={handleFilters}>
+                        <Option disabled>color</Option>
+                        <Option>gray</Option>
+                        <Option>blue</Option>
+                        <Option>red</Option>
                     </Select>
-                    <Select>
-                        <Option disabled selected>
-                            Vegetables
-                        </Option>
-                        <Option>Salad</Option>
-                        <Option>Tomato Sauce</Option>
-                        <Option>Cabbage</Option>
+                    <Select name="size" onChange={handleFilters}>
+                        <Option disabled>Size</Option>
+                        <Option>S</Option>
+                        <Option>M</Option>
+                        <Option>L</Option>
+                        <Option>XL</Option>
                     </Select>
                 </Filter>
                 <Filter>
                     <FilterText>Sort Product</FilterText>
-                    <Select>
-                        <Option disabled selected>
-                            Price
-                        </Option>
-                        <Option>Low to High</Option>
-                        <Option>High to Low</Option>
+                    <Select
+                        onChange={(e) => {
+                            setSort(e.target.value);
+                        }}
+                    >
+                        <Option value="newest">Newest</Option>
+                        <Option value="asc">Low to High</Option>
+                        <Option value="desc">High to Low</Option>
                     </Select>
                 </Filter>
             </FilterContainer>
-            <Products />
+            <Products cat={cat} filters={filters} sort={sort} />
             <NewsLetter />
             <Footer />
         </Container>

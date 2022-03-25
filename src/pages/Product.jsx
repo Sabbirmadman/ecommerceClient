@@ -7,6 +7,11 @@ import Navbar from "../components/Navbar";
 import NewsLetter from "../components/NewsLetter";
 
 import { mobile } from "../responsive";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { publicRequest } from "../requestMethods";
+import { addProduct } from "../redux/cartRedux";
+import { useDispatch } from "react-redux";
 
 const Container = styled.div``;
 const Wrapper = styled.div`
@@ -73,6 +78,7 @@ const FilterOption1 = styled.div`
     background-color: ${(props) => props.color};
     margin: 0px 5px;
     cursor: pointer;
+    border: 0.1px solid black;
 `;
 
 const FilterSelect = styled.select`
@@ -119,24 +125,69 @@ const Button = styled.button`
 `;
 
 const Product = () => {
+    const locations = useLocation();
+    const product_id = locations.pathname.split("/")[2];
+    const [quantity, setQuantity] = useState(1);
+    const [product, setProduct] = useState({});
+    const [color, setColor] = useState("");
+    const [size, setSize] = useState("");
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const getProduct = async () => {
+            try {
+                const res = await publicRequest(`/products/find/${product_id}`);
+                setProduct(res.data);
+            } catch (e) {
+                console.log(e);
+            }
+        };
+        getProduct();
+    }, [product_id]);
+
+    const handleQuantity = (type) => {
+        if (type === "add") {
+            setQuantity(quantity + 1);
+        } else if (type === "remove" && quantity > 1) {
+            setQuantity(quantity - 1);
+        }
+    };
+
+    const handleClick = () => {
+        dispatch(
+            addProduct({
+                ...product,
+                quantity,
+                color,
+                size,
+            })
+        );
+        // console.log({ ...product, quantity, color, size });
+    };
+
     return (
         <Container>
             <Navbar />
             <Announcement />
             <Wrapper>
                 <ImageContainer>
-                    <Image src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80" />
+                    <Image src={product.img} />
                 </ImageContainer>
                 <InfoContainer>
-                    <Title>KABAB</Title>
-                    <Desc>Grilled chicken kabab for Sale</Desc>
-                    <Price>100$</Price>
+                    <Title>{product.title}</Title>
+                    <Desc>{product.Desc}</Desc>
+                    <Price>${product.price}</Price>
                     <FilterContainer>
                         <Filter>
-                            <FilterTitle>Spice</FilterTitle>
-                            <FilterOption1 color="black" />
-                            <FilterOption1 color="darkblue" />
-                            <FilterOption1 color="gray" />
+                            <FilterTitle>Color</FilterTitle>
+                            {product.color &&
+                                product.color.map((color) => (
+                                    <FilterOption1
+                                        color={color}
+                                        key={color}
+                                        onClick={() => setColor(color)}
+                                    />
+                                ))}
 
                             {/* 
                             <FilterTitle>Spice</FilterTitle>
@@ -148,21 +199,27 @@ const Product = () => {
                         </Filter>
                         <Filter>
                             <FilterTitle>Size</FilterTitle>
-                            <FilterSelect>
-                                <FilterOption2>Small</FilterOption2>
-                                <FilterOption2>Medium</FilterOption2>
-                                <FilterOption2>Large</FilterOption2>
+                            <FilterSelect
+                                onChange={(e) => {
+                                    setSize(e.target.value);
+                                }}
+                            >
+                                {product.size?.map((size) => (
+                                    <FilterOption2 key={size}>
+                                        {size}
+                                    </FilterOption2>
+                                ))}
                             </FilterSelect>
                         </Filter>
                     </FilterContainer>
 
                     <AddContainer>
                         <AmmountContainer>
-                            <Remove />
-                            <Ammount>1</Ammount>
-                            <Add />
+                            <Remove onClick={() => handleQuantity("remove")} />
+                            <Ammount>{quantity}</Ammount>
+                            <Add onClick={() => handleQuantity("add")} />
                         </AmmountContainer>
-                        <Button>Add To Cart</Button>
+                        <Button onClick={handleClick}>Add To Cart</Button>
                     </AddContainer>
                 </InfoContainer>
             </Wrapper>
